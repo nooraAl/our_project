@@ -1,0 +1,122 @@
+
+
+NODE_VERSION='v14'
+YARN_VERSION='1.22'
+GULP_VERSION='2.3'
+BOWER_VERSION='1.8'
+CORDOVA_VERSION='10.0'
+IONIC_VERSION='1.2.4'
+DBEAVER_VERSION='21.'
+DART_VERSION='2.16.2'
+FLUTTER_VERSION='2.10.5'
+
+BASE_PATH_JTECH="/jtech"
+if [ ! -d "/jtech" ]; then
+    BASE_PATH_JTECH="/home/jtech"
+    cd /
+    sudo ln -s /home/jtech /jtech
+    cd $BASE_PATH_JTECH
+fi
+sudo dnf update -y
+sudo chown -R $USER $BASE_PATH_JTECH
+rpm -qa | grep openjdk | sudo xargs dnf -y remove
+sudo wget -q http://172.30.1.4:8018/fileservers/download/jtech_environments.sh >
+cd $BASE_PATH_JTECH
+mkdir -p temp
+
+# VSCode
+sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+sudo sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.>
+sudo dnf install code -y
+wget --content-disposition --show-progress -qnc http://172.30.1.4:8018/fileserv>
+wget --content-disposition --show-progress -qnc http://172.30.1.4:8018/fileserv>
+wget --content-disposition --show-progress -qnc http://172.30.1.4:8018/fileserv>
+wget --content-disposition --show-progress -qnc http://172.30.1.4:8018/fileserv>
+wget --content-disposition --show-progress -qnc http://172.30.1.4:8018/fileserv>
+code --install-extension $BASE_PATH_JTECH/temp/code-docker.vsix
+code --install-extension $BASE_PATH_JTECH/temp/code-favorites.vsix
+code --install-extension $BASE_PATH_JTECH/temp/code-icon-theme.vsix
+code --install-extension $BASE_PATH_JTECH/temp/code-remote.vsix
+# DBeaver
+dbeaverExists=$(whereis dbeaver)
+if [ -z "${dbeaverExists##*'/dbeaver'*}" ]; then
+    dbeaverVersion=$(cat /usr/share/dbeaver-ce/readme.txt)
+    if [ ! -z "${dbeaverVersion##*$DBEAVER_VERSION*}" ]; then
+        wget --show-progress -q https://dbeaver.io/files/dbeaver-ce-latest-stab>
+        sudo rpm -Uvh $BASE_PATH_JTECH/temp/dbeaver-ce-latest-stable.x86_64.rpm
+    fi
+else
+    wget --show-progress -q https://dbeaver.io/files/dbeaver-ce-latest-stable.x>
+    sudo rpm -Uvh $BASE_PATH_JTECH/temp/dbeaver-ce-latest-stable.x86_64.rpm
+fi
+
+# Node
+sudo rm -rf /etc/yum.repos.d/nodesource*.repo
+sudo dnf module reset nodejs -y
+nodeExists=$(whereis node)
+if [ -z "${nodeExists##*'/node'*}" ]; then
+    nodeVersion=$(node --version)
+    if [ ! -z "${nodeVersion##*$NODE_VERSION*}" ]; then
+        sudo npm install gulp-cli -g
+    fi
+else
+    sudo npm install gulp-cli -g
+fi
+
+# Bower
+bowerExists=$(whereis bower)
+if [ -z "${bowerExists##*'/bower'*}" ]; then
+    bowerVersion=$(bower --version)
+    if [ ! -z "${bowerVersion##*$BOWER_VERSION*}" ]; then
+        sudo npm install bower -g
+    fi
+else
+    sudo npm install bower -g
+fi
+
+# Cordova
+cordovaExists=$(whereis cordova)
+cordovaExists=$(whereis cordova)
+if [ -z "${cordovaExists##*'/cordova'*}" ]; then
+    cordovaVersion=$(cordova --version)
+    if [ ! -z "${cordovaVersion##*$CORDOVA_VERSION*}" ]; then
+        sudo npm install cordova -g
+    fi
+else
+    sudo npm install cordova -g
+fi
+
+# Ionic
+ionicExists=$(whereis ionic)
+if [ -z "${ionicExists##*'/ionic'*}" ]; then
+    ionicVersion=$(ionic --version)
+    if [ ! -z "${ionicVersion##*$IONIC_VERSION*}" ]; then
+        sudo npm install ionic@1.2.4 -g
+    fi
+else
+    sudo npm install ionic@1.2.4 -g
+fi
+
+# Sysctl
+watches=$(cat /etc/sysctl.conf)
+if [ ! -z "${watches##*'fs.inotify.max_user_watches=524288'*}" ]; then
+    echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
+    sudo sysctl -p
+fi
+
+# Flutter
+if [ ! -d "$BASE_PATH_JTECH/devtools/mobile/flutter" ]; then
+    git clone https://github.com/flutter/flutter.git $BASE_PATH_JTECH/devtools/>
+    cd $BASE_PATH_JTECH/devtools/mobile/flutter && git checkout $FLUTTER_VERSIO>
+fi
+cd $BASE_PATH_JTECH
+
+# Dart
+if [ ! -d "$BASE_PATH_JTECH/devtools/mobile/dart-sdk" ]; then
+    wget --show-progress -q https://storage.googleapis.com/dart-archive/channel>
+    unzip -o -q $BASE_PATH_JTECH/temp/dartsdk-linux-x64-release.zip -d $BASE_PA>
+fi
+
+wget -q http://172.30.1.4:8018/fileservers/download/montar-ambiente-dev-v4.sh ->
+sh $BASE_PATH_JTECH/montar-ambiente-dev-v4.sh
+source /etc/profile.d/jtech_environments.sh
